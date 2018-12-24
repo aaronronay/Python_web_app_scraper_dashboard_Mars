@@ -1,7 +1,7 @@
-# mission to mars
+# Aaron Ronay - HW10 - Mission to Mars
 # scraping data from multiple websites into MongoDB, 
-# and then send that data to a Flask web server
-# and then to a website to view the data
+# and then send that data to a Flask web server using JSON
+# and then send that JSON data to a website to visualize in a dashboard like layout
 
 # a: scraping dependencies
 print("Importing dependencies for scraper...")
@@ -10,7 +10,7 @@ import os
 from bs4 import BeautifulSoup
 from splinter import Browser
 from selenium import webdriver
-executable_path = {"executable_path": "/python_chrome_driver/drivers"}
+executable_path = {"executable_path": "C://python_chrome_driver//drivers//"}
 browser = Browser("chrome", **executable_path, headless=False)
 print("Importing dependencies for scraper...done")# ====================================================================
 print("====================================================================")
@@ -167,19 +167,29 @@ soup = BeautifulSoup(html, 'html.parser')
 # This list will contain one dictionary for each hemisphere.
 
 # loop through the 4 images and load them into a dictionary
+# first create an empty list to hold each image url
 mars_hemispheres = []
 print("Obtaining image urls")
 for i in range (4):
     # wait a few seconds to load each image
     time.sleep(5)
+    #show the browser where the image is 
     images = browser.find_by_tag('h3')
+    # for each image, click on it
     images[i].click()
+    #get the new image html for each click
     html = browser.html
+    #set the parameters for each soup session for each click and parse through
     soup = BeautifulSoup(html, 'html.parser')
+    #create a variable that will find the partial img src when the class is a wide image
     partial = soup.find("img", class_="wide-image")["src"]
+    #create a variable that will find the text title from the class "title" from any h2 headings
     img_title = soup.find("h2",class_="title").text
+    #create a vaiable to hold the image url by combining the main URL with the partial image url
     img_url = 'https://astrogeology.usgs.gov'+ partial
+    #create dictionary to hold each image's title and url
     dictionary={"title":img_title,"img_url":img_url}
+    #add the dictionary data for each image to the empty list
     mars_hemispheres.append(dictionary)
     browser.back()
 print(mars_hemispheres)
@@ -195,7 +205,9 @@ print("====================================================================")
 # Create a dictionary for all of the scraped data
 
 print("Now combining all of the scraped data...")
+#create empty dictionary
 mars_data_master = {}
+#add each scraped item to the empty dictionary, which will be the same as a JSON object
 mars_data_master["news_date"] = newest_date
 mars_data_master["news_title"] = newest_title
 mars_data_master["summary"] = newest_paragraph
@@ -213,21 +225,28 @@ print("Now starting web server")
 from flask import Flask, render_template, jsonify, redirect
 from flask_pymongo import PyMongo
 
-# create flask app instance
+# create flask app instance with mongo url
 app = Flask(__name__)
+#start up mongo db, add mongo db url info, name of database is "mars_db"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/mars_db"
 mongo = PyMongo(app)
+
+
 
 #  create route for index.html template
 @app.route("/")
 def index():
-    mars = mongo.db.mars.find_one()
+    #allow mars_db data to be displayed on index.html
+    mars = mongo.db.mars_db.find_one()
     return render_template("index.html", mars=mars)
 
 #  create route for scraped data
 @app.route("/scrape")
 def scrape():
-    mars = mongo.db.mars
+    #create flask-mongo connection
+    mars = mongo.db.mars_db
     mars_data_master = mars_data_master.scrape()
+    # send the scraped JSON data to mongo
     mars.update(
         {},
         mars_data_master,
