@@ -231,8 +231,6 @@ app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/mars_db"
 mongo = PyMongo(app)
 
-
-
 #  create route for index.html template
 @app.route("/")
 def index():
@@ -246,7 +244,7 @@ def scrape():
     #create flask-mongo connection
     mars = mongo.db.mars_db
     mars_data_master = mars_data_master.scrape()
-    # send the scraped JSON data to mongo
+    # send the scraped JSON data to mongo db
     mars.update(
         {},
         mars_data_master,
