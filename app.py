@@ -234,7 +234,7 @@ mongo = PyMongo(app)
 #  create route for index.html template
 @app.route("/")
 def index():
-    #allow mars_db data to be displayed on index.html
+    #allow mars_db data to be displayed as JSON on index.html with 'mars' from the scrape path as mars_data_master data using pymongo 'find_one'
     mars = mongo.db.mars_db.find_one()
     return render_template("index.html", mars=mars)
 
@@ -244,13 +244,13 @@ def scrape():
     #create flask-mongo connection
     mars = mongo.db.mars_db
     mars_data_master = mars_data_master.scrape()
-    # send the scraped JSON data to mongo db
-    mars.update(
-        {},
-        mars_data_master,
-        upsert=True
-    )
-    return redirect("http://localhost:5000/", code=302)
+    # send the scraped JSON data with scrape path to mongo db and access as dictionary object in html
+    mars.update({}, mars_data_master, upsert=True)
+
+#error route handling
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
 
 # start flask server
 if __name__ == "__main__":
