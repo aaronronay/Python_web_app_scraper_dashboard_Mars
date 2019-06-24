@@ -1,4 +1,4 @@
-# Aaron Ronay - HW10 - Mission to Mars
+# Aaron Ronay - Mission to Mars
 # scraping data from multiple websites into MongoDB, 
 # and then send that data to a Flask web server using JSON
 # and then send that JSON data to a website to visualize in a dashboard like layout
